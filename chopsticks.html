@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chopstocks Finger Game</title>
+    <a href="index.html">Resume Page</a>
+    <a href="fromScratch.html">Scratch Page</a>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --bg: #0f172a;
+            --accent: #22c55e;
+            --player-color: #3b82f6;
+            --cpu-color: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Press Start 2P', system-ui;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            letter-spacing: 2px;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 40px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+        
+        .score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+        }
+        
+        .score-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+        
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .you .score-value { color: var(--player-color); }
+        .cpu .score-value { color: var(--cpu-color); }
+        
+        .board {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto 40px;
+        }
+        
+        .opponent-area {
+            margin-bottom: 60px;
+        }
+        
+        .player-area {
+            margin-top: 60px;
+        }
+        
+        .section-label {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            letter-spacing: 3px;
+            opacity: 0.9;
+        }
+        
+        .hands {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .hand {
+            width: 170px;
+            height: 170px;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            user-select: none;
+        }
+        
+        .hand.player-hand {
+            background: linear-gradient(145deg, #1e40af, #3b82f6);
+        }
+        
+        .hand.cpu-hand {
+            background: linear-gradient(145deg, #991b1b, #ef4444);
+        }
+        
+        .hand.dead {
+            background: #334155 !important;
+            filter: grayscale(1) brightness(0.7);
+            cursor: not-allowed;
+        }
+        
+        .hand:hover:not(.dead) {
+            transform: scale(1.08) rotate(3deg);
+            box-shadow: 0 15px 25px rgba(34, 197, 94, 0.4);
+        }
+        
+        .hand.highlight {
+            border: 6px solid #fde047;
+            box-shadow: 0 0 30px #fde047;
+            transform: scale(1.12);
+        }
+        
+        .hand-content {
+            text-align: center;
+        }
+        
+        .hand-number {
+            font-size: 5.5rem;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+        }
+        
+        .hand.dead .hand-number {
+            font-size: 2.8rem;
+        }
+        
+        .hand-label {
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        
+        .hand.dead .hand-label::after {
+            content: "ELIMINATED";
+            display: block;
+            font-size: 0.7rem;
+            color: #f87171;
+            margin-top: 4px;
+        }
+        
+        .status {
+            min-height: 80px;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            font-family: 'Press Start 2P', system-ui;
+            padding: 18px 32px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 #16a34a;
+            margin: 5px;
+        }
+        
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #16a34a;
+        }
+        
+        button:disabled {
+            background: #64748b;
+            color: #cbd5e1;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .split-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .split-btn {
+            background: #64748b;
+            color: white;
+            padding: 14px 24px;
+            font-size: 1rem;
+            min-width: 140px;
+        }
+        
+        .log {
+            margin-top: 25px;
+            font-size: 0.95rem;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 10px;
+            line-height: 1.5;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: #1e2937;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: left;
+            box-shadow: 0 0 40px var(--accent);
+        }
+        
+        .footer {
+            margin-top: auto;
+            padding-top: 30px;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CHOPSTOCKS</h1>
+        <div class="subtitle">FINGER BATTLE • FIRST TO 5 WINS</div>
+    </header>
+
+    <div class="score-board">
+        <div class="score you">
+            <div class="score-label">YOU</div>
+            <div id="player-score" class="score-value">0</div>
+        </div>
+        <div style="font-size: 2.8rem; align-self: center; color: var(--accent);">VS</div>
+        <div class="score cpu">
+            <div class="score-label">COMPUTER</div>
+            <div id="cpu-score" class="score-value">0</div>
+        </div>
+    </div>
+
+    <div class="board">
+        <!-- CPU AREA -->
+        <div class="opponent-area">
+            <div class="section-label">COMPUTER'S HANDS</div>
+            <div class="hands">
+                <div id="cpu-left" class="hand cpu-hand" data-side="left">
+                    <div class="hand-content">
+                        <div id="cpu-left-number" class="hand-number">1</div>
+                        <div class="hand-label">LEFT</div>
+                    </div>
+                </div>
+                <div id="cpu-right" class="hand cpu-hand" data-side="right">
+                    <div class="hand-content">
+                        <div id="cpu-right-number" class="hand-number">1</div>
+                        <div class="hand-label">RIGHT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAYER AREA -->
+        <div class="player-area">
+            <div class="section-label">YOUR HANDS</div>
+            <div class="hands">
+                <div id="player-left" class="hand player-hand" data-side="left">
+                    <div class="hand-content">
+                        <div id="player-left-number" class="hand-number">1</div>
+                        <div class="hand-label">LEFT</div>
+                    </div>
+                </div>
+                <div id="player-right" class="hand player-hand" data-side="right">
+                    <div class="hand-content">
+                        <div id="player-right-number" class="hand-number">1</div>
+                        <div class="hand-label">RIGHT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status" class="status">
+        Your turn • Choose an action below
+    </div>
+
+    <div class="controls">
+        <div id="main-controls">
+            <div class="action-buttons">
+                <button id="btn-attack">ATTACK</button>
+                <button id="btn-split">SPLIT</button>
+            </div>
+            <div id="split-panel" class="split-options" style="display: none;"></div>
+        </div>
+        
+        <div id="action-log" class="log"></div>
+    </div>
+
+    <!-- Win modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="text-align:center; margin-bottom:20px; font-size:1.8rem;"></h2>
+            <p id="modal-text" style="margin-bottom:30px; line-height:1.6;"></p>
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button onclick="newGame()" style="background:#22c55e; padding:16px 40px;">NEW GAME</button>
+                <button onclick="closeModal()" style="background:#64748b; padding:16px 40px;">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Classic Chopsticks rules • Splitting allowed • First to 5 round wins<br>
+    </div>
+
+    <script>
+        // Game state
+        let game = {
+            player: { left: 1, right: 1 },
+            cpu: { left: 1, right: 1 },
+            playerScore: 0,
+            cpuScore: 0,
+            gameState: 'player_action', // player_action, select_attacker, select_target, computer_turn
+            selectedAttacker: null,
+            logMessages: []
+        }
+
+        // DOM elements
+        let playerLeftEl, playerRightEl, cpuLeftEl, cpuRightEl
+        let playerLeftNum, playerRightNum, cpuLeftNum, cpuRightNum
+        let statusEl, logEl, splitPanelEl
+        let btnAttack, btnSplit
+
+        // Utility: is hand live?
+        function isLive(hand, side) {
+            return hand[side] > 0
+        }
+
+        // Render all hands
+        function renderHands() {
+            // Player
+            renderSingleHand('player-left', game.player.left, 'player-hand')
+            renderSingleHand('player-right', game.player.right, 'player-hand')
+            
+            // CPU
+            renderSingleHand('cpu-left', game.cpu.left, 'cpu-hand')
+            renderSingleHand('cpu-right', game.cpu.right, 'cpu-hand')
+        }
+
+        function renderSingleHand(id, value, type) {
+            const el = document.getElementById(id)
+            const numEl = document.getElementById(id + '-number')
+            
+            if (value === 0) {
+                el.classList.add('dead')
+                numEl.textContent = '☠'
+                numEl.style.fontSize = '3.2rem'
+            } else {
+                el.classList.remove('dead')
+                numEl.textContent = value
+                numEl.style.fontSize = '5.5rem'
+            }
+            
+            // Remove highlight
+            el.classList.remove('highlight')
+        }
+
+        // Render scores
+        function renderScores() {
+            document.getElementById('player-score').textContent = game.playerScore
+            document.getElementById('cpu-score').textContent = game.cpuScore
+        }
+
+        // Add to log
+        function addLog(message, color = '#a3e635') {
+            game.logMessages.unshift(message)
+            if (game.logMessages.length > 6) game.logMessages.pop()
+            logEl.innerHTML = game.logMessages.map(msg => 
+                `<span style="color:${color};">→</span> ${msg}`
+            ).join('<br>')
+            logEl.scrollTop = 0
+        }
+
+        // Check if a round has a winner
+        function checkRoundWinner() {
+            const playerDead = !isLive(game.player, 'left') && !isLive(game.player, 'right')
+            const cpuDead = !isLive(game.cpu, 'left') && !isLive(game.cpu, 'right')
+            
+            if (playerDead) return 'cpu'
+            if (cpuDead) return 'player'
+            return null
+        }
+
+        // Reset hands for new round
+        function resetHands() {
+            game.player = { left: 1, right: 1 }
+            game.cpu = { left: 1, right: 1 }
+            game.logMessages = []
+            renderHands()
+            addLog('NEW ROUND STARTED!', '#67e8f9')
+        }
+
+        // Perform an attack
+        function doAttack(attackerType, attackerSide, targetSide) {
+            let attackerHands = attackerType === 'player' ? game.player : game.cpu
+            let targetHands = attackerType === 'player' ? game.cpu : game.player
+            
+            if (!isLive(attackerHands, attackerSide) || !isLive(targetHands, targetSide)) {
+                return false
+            }
+            
+            const added = attackerHands[attackerSide]
+            targetHands[targetSide] += added
+            
+            const was = targetHands[targetSide]
+            if (targetHands[targetSide] >= 5) {
+                targetHands[targetSide] = 0
+            }
+            
+            // Log
+            const attackerName = attackerType === 'player' ? 'You' : 'Computer'
+            const targetName = attackerType === 'player' ? 'Computer' : 'You'
+            addLog(`${attackerName} added ${added} from ${attackerSide.toUpperCase()} → ${targetName} ${targetSide.toUpperCase()} (${was} → ${targetHands[targetSide]})`)
+            
+            return true
+        }
+
+        // Generate possible splits for a player
+        function getPossibleSplits(hands) {
+            const total = hands.left + hands.right
+            const possibles = []
+            
+            for (let l = Math.max(0, total - 4); l <= Math.min(4, total); l++) {
+                const r = total - l
+                // Only valid non-identical configurations
+                if (r >= 0 && r <= 4 && !(l === hands.left && r === hands.right)) {
+                    possibles.push({ left: l, right: r })
+                }
+            }
+            return possibles
+        }
+
+        // Apply a split
+        function applySplit(newLeft, newRight) {
+            const total = game.player.left + game.player.right
+            if (newLeft + newRight !== total || newLeft > 4 || newRight > 4 || newLeft < 0 || newRight < 0) return
+            
+            // Log
+            addLog(`You split → Left: ${newLeft} | Right: ${newRight}`, '#a3e635')
+            
+            game.player.left = newLeft
+            game.player.right = newRight
+            renderHands()
+            
+            // End player turn
+            setTimeout(computerTurn, 600)
+        }
+
+        // Player's attack flow
+        function startAttackMode() {
+            game.gameState = 'select_attacker'
+            game.selectedAttacker = null
+            statusEl.innerHTML = `
+                <span style="color:#fde047;">SELECT YOUR HAND TO ATTACK WITH</span>
+            `
+            // Highlight live player hands
+            if (isLive(game.player, 'left')) playerLeftEl.classList.add('highlight')
+            if (isLive(game.player, 'right')) playerRightEl.classList.add('highlight')
+            
+            btnAttack.style.display = 'none'
+            btnSplit.style.display = 'none'
+        }
+
+        // Computer's AI turn (always attacks - splitting only allowed for player)
+        function computerTurn() {
+            game.gameState = 'computer_turn'
+            statusEl.innerHTML = `
+                <span style="color:#f87171;">COMPUTER IS THINKING...</span>
+            `
+            renderHands()
+            
+            setTimeout(() => {
+                // Find live hands
+                const cpuLive = []
+                if (isLive(game.cpu, 'left')) cpuLive.push('left')
+                if (isLive(game.cpu, 'right')) cpuLive.push('right')
+                
+                const playerLive = []
+                if (isLive(game.player, 'left')) playerLive.push('left')
+                if (isLive(game.player, 'right')) playerLive.push('right')
+                
+                if (cpuLive.length === 0 || playerLive.length === 0) {
+                    // Game should have already ended
+                    return
+                }
+                
+                // 1. Look for any killing move
+                let killMove = null
+                for (let att of cpuLive) {
+                    for (let tgt of playerLive) {
+                        if (game.player[tgt] + game.cpu[att] >= 5) {
+                            killMove = { att, tgt }
+                            break
+                        }
+                    }
+                    if (killMove) break
+                }
+                
+                // 2. Execute
+                if (killMove) {
+                    doAttack('cpu', killMove.att, killMove.tgt)
+                } else {
+                    // Otherwise attack the highest-value player hand
+                    let bestTarget = playerLive[0]
+                    let highest = game.player[bestTarget]
+                    
+                    for (let tgt of playerLive) {
+                        if (game.player[tgt] > highest) {
+                            highest = game.player[tgt]
+                            bestTarget = tgt
+                        }
+                    }
+                    
+                    // Choose attacker (random among live)
+                    const attackerSide = cpuLive[Math.floor(Math.random() * cpuLive.length)]
+                    doAttack('cpu', attackerSide, bestTarget)
+                }
+                
+                renderHands()
+                
+                // Check round winner
+                const roundWinner = checkRoundWinner()
+                
+                if (roundWinner) {
+                    endRound(roundWinner)
+                } else {
+                    // Back to player
+                    game.gameState = 'player_action'
+                    statusEl.innerHTML = `Your turn • Choose an action`
+                    btnAttack.style.display = 'inline-block'
+                    btnSplit.style.display = 'inline-block'
+                    renderHands()
+                }
+            }, 1100)
+        }
+
+        // End a round
+        function endRound(winner) {
+            if (winner === 'player') {
+                game.playerScore++
+                addLog('🎉 YOU WON THE ROUND!', '#22c55e')
+                statusEl.innerHTML = `<span style="color:#22c55e; font-size:1.6rem;">YOU WIN THE ROUND!</span>`
+            } else {
+                game.cpuScore++
+                addLog('💥 COMPUTER WON THE ROUND', '#f87171')
+                statusEl.innerHTML = `<span style="color:#f87171; font-size:1.6rem;">COMPUTER WINS THE ROUND</span>`
+            }
+            
+            renderScores()
+            
+            // Check overall winner
+            if (game.playerScore >= 5 || game.cpuScore >= 5) {
+                showGameOver()
+            } else {
+                setTimeout(() => {
+                    resetHands()
+                    game.gameState = 'player_action'
+                    statusEl.innerHTML = `Your turn • Choose an action`
+                    btnAttack.style.display = 'inline-block'
+                    btnSplit.style.display = 'inline-block'
+                    renderHands()
+                    renderScores()
+                }, 2200)
+            }
+        }
+
+        // Show game over modal
+        function showGameOver() {
+            const modal = document.getElementById('win-modal')
+            const title = document.getElementById('modal-title')
+            const text = document.getElementById('modal-text')
+            
+            if (game.playerScore >= 5) {
+                title.innerHTML = `🎉 YOU WIN THE GAME!`
+                title.style.color = '#22c55e'
+                text.innerHTML = `You defeated the computer ${game.playerScore}–${game.cpuScore}<br><br>First to 5 rounds wins!`
+            } else {
+                title.innerHTML = `💻 COMPUTER WINS`
+                title.style.color = '#ef4444'
+                text.innerHTML = `The computer defeated you ${game.cpuScore}–${game.playerScore}<br><br>Better luck next time!`
+            }
+            
+            modal.style.display = 'flex'
+        }
+
+        function closeModal() {
+            document.getElementById('win-modal').style.display = 'none'
+        }
+
+        function newGame() {
+            closeModal()
+            // Reset everything
+            game.playerScore = 0
+            game.cpuScore = 0
+            game.logMessages = []
+            resetHands()
+            game.gameState = 'player_action'
+            renderScores()
+            statusEl.innerHTML = `Your turn • Choose an action`
+            btnAttack.style.display = 'inline-block'
+            btnSplit.style.display = 'inline-block'
+            logEl.innerHTML = ''
+            addLog('NEW GAME STARTED!', '#67e8f9')
+        }
+
+        // Main game initialization
+        function init() {
+            // Get DOM elements
+            playerLeftEl = document.getElementById('player-left')
+            playerRightEl = document.getElementById('player-right')
+            cpuLeftEl = document.getElementById('cpu-left')
+            cpuRightEl = document.getElementById('cpu-right')
+            
+            playerLeftNum = document.getElementById('player-left-number')
+            playerRightNum = document.getElementById('player-right-number')
+            cpuLeftNum = document.getElementById('cpu-left-number')
+            cpuRightNum = document.getElementById('cpu-right-number')
+            
+            statusEl = document.getElementById('status')
+            logEl = document.getElementById('action-log')
+            splitPanelEl = document.getElementById('split-panel')
+            btnAttack = document.getElementById('btn-attack')
+            btnSplit = document.getElementById('btn-split')
+            
+            // Render initial state
+            renderHands()
+            renderScores()
+            addLog('If a hand reaches a value of 5 it "dies"', '#67e8f9')
+            addLog('Add your hand value to the computer’s hands. First to 5 round wins!', '#a3e635')
+            
+            // Click handlers for hands (dynamic based on state)
+            function handleHandClick(e) {
+                const handEl = e.currentTarget
+                const side = handEl.dataset.side
+                const isPlayerHand = handEl.classList.contains('player-hand')
+                
+                if (game.gameState === 'select_attacker' && isPlayerHand) {
+                    // Player selecting attacker
+                    game.selectedAttacker = side
+                    
+                    // Remove highlights
+                    playerLeftEl.classList.remove('highlight')
+                    playerRightEl.classList.remove('highlight')
+                    
+                    // Highlight CPU targets
+                    game.gameState = 'select_target'
+                    statusEl.innerHTML = `<span style="color:#fde047;">SELECT COMPUTER HAND TO ATTACK</span>`
+                    
+                    if (isLive(game.cpu, 'left')) cpuLeftEl.classList.add('highlight')
+                    if (isLive(game.cpu, 'right')) cpuRightEl.classList.add('highlight')
+                    
+                } else if (game.gameState === 'select_target' && !isPlayerHand) {
+                    // Player selecting target
+                    const success = doAttack('player', game.selectedAttacker, side)
+                    if (success) {
+                        renderHands()
+                        
+                        // Remove highlights
+                        cpuLeftEl.classList.remove('highlight')
+                        cpuRightEl.classList.remove('highlight')
+                        
+                        const roundWinner = checkRoundWinner()
+                        
+                        if (roundWinner) {
+                            endRound(roundWinner)
+                        } else {
+                            // Computer's turn
+                            setTimeout(computerTurn, 700)
+                        }
+                    }
+                }
+            }
+            
+            // Attach click listeners
+            playerLeftEl.addEventListener('click', handleHandClick)
+            playerRightEl.addEventListener('click', handleHandClick)
+            cpuLeftEl.addEventListener('click', handleHandClick)
+            cpuRightEl.addEventListener('click', handleHandClick)
+            
+            // Attack button
+            btnAttack.addEventListener('click', () => {
+                if (game.gameState !== 'player_action') return
+                startAttackMode()
+            })
+            
+            // Split button
+            btnSplit.addEventListener('click', () => {
+                if (game.gameState !== 'player_action') return
+                
+                const possibles = getPossibleSplits(game.player)
+                
+                if (possibles.length === 0) {
+                    statusEl.innerHTML = `<span style="color:#f87171;">No valid splits available right now</span>`
+                    setTimeout(() => {
+                        statusEl.innerHTML = `Your turn • Choose an action`
+                    }, 1200)
+                    return
+                }
+                
+                game.gameState = 'select_split'
+                btnAttack.style.display = 'none'
+                btnSplit.style.display = 'none'
+                
+                let html = `<strong style="color:#67e8f9; margin-bottom:12px; display:block;">CHOOSE NEW SPLIT (total fingers preserved)</strong>`
+                
+                possibles.forEach(split => {
+                    html += `
+                        <button onclick="applySplit(${split.left}, ${split.right});" class="split-btn">
+                            LEFT <span style="font-size:1.6rem">${split.left}</span> | RIGHT <span style="font-size:1.6rem">${split.right}</span>
+                        </button>`
+                })
+                
+                splitPanelEl.innerHTML = html
+                splitPanelEl.style.display = 'flex'
+                
+                statusEl.innerHTML = `<span style="color:#67e8f9;">SPLIT YOUR FINGERS</span>`
+            })
+            
+            console.log('%c✅ Chopstocks game ready! Enjoy the finger battle!', 'color:#22c55e; font-family:monospace')
+        }
+        
+        // Start the game when page loads
+        window.onload = init
+    </script>
+</body>
+</html>

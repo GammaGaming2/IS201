@@ -1,0 +1,36 @@
+head{
+    font-family: 'Times New Roman', Times, serif;
+}
+p{
+    font-weight: lighter;
+    font-size: 18px;
+    text-align: center;
+}
+
+h1{
+    font-style: italic;
+    text-align: center;
+}
+
+h2{
+    color: rgb(96, 0, 0);
+    text-decoration: underline;
+}
+.body{
+    font-family: Arial, Helvetica, sans-serif;
+}
+.header{
+    font-family: Arial, Helvetica, sans-serif;
+    color: aliceblue;
+    text-align: right;
+    font-size: larger;
+    font-weight: bold;
+}
+.video{
+    text-align: center;
+}
+.footer{
+    text-align: center;
+    font-size: x-large;
+    text-decoration: underline;
+}
